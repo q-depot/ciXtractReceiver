@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<cinder>
+	
+	<block
+		name="ciXtractReceiver"
+		id="uk.nocte.cixtractreceiver"
+		author="Andrea Cuius"
+		summary="LibXtract OSC Receiver"
+		git="ssh://git@bitbucket.org/q_bit/cixtract.git"
+		library="https://github.com/jamiebullock/LibXtract/"
+		>
+		<supports os="msw" />
+		<supports os="macosx" />
+	
+		<sourcePattern>src/ciXtractReceiver.cpp</sourcePattern>
+		<headerPattern>src/ciXtractReceiver.h</headerPattern>
+	
+		<includePath>src/</includePath>
+		
+	</block>
+	
+	<template>templates/ciXtractReceiver/template.xml</template>
+	
+</cinder>
