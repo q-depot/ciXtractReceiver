@@ -48,16 +48,6 @@ public:
     
     FeatureDataRef getFeatureData( std::string name );
     
-//    void enableFeature( xtract_features_ feature );
-//    
-//    void disableFeature( xtract_features_ feature );
-//    
-//    void toggleFeature( xtract_features_ feature );
-//    
-//    std::vector<ciXtractFeatureRef> getFeatures() { return mFeatures; };
-//    
-//    ciXtractFeatureRef getFeature( xtract_features_ feature );
-
 
 private:
     
@@ -68,13 +58,12 @@ private:
     
 private:
     
+    std::vector<FeatureDataRef>     mFeatures;
     
-    std::vector<FeatureDataRef>    mFeatures;
-    
-	osc::Listener 	mOscListener;
-    uint32_t        mPort;
-    std::thread     mReceiveDataThread;
-    bool            mRunReceiveData;
+	osc::Listener                   mOscListener;
+    uint32_t                        mPort;
+    std::thread                     mReceiveDataThread;
+    bool                            mRunReceiveData;
     
 };
 
