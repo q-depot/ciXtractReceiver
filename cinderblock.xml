@@ -6,8 +6,7 @@
 		id="uk.nocte.cixtractreceiver"
 		author="Andrea Cuius"
 		summary="LibXtract OSC Receiver"
-		git="ssh://git@bitbucket.org/q_bit/cixtract.git"
-		library="https://github.com/jamiebullock/LibXtract/"
+		git="git@bitbucket.org:q_bit/cixtractreceiver.git"
 		>
 		<supports os="msw" />
 		<supports os="macosx" />
