@@ -53,6 +53,7 @@ void ciXtractReceiver::receiveData()
     
     while( mRunReceiveData )
     {
+
         while( mOscListener.hasWaitingMessages() )
         {
             osc::Message message;
