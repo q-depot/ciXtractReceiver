@@ -19,7 +19,7 @@ using namespace std;
 
 
 ciXtractReceiver::ciXtractReceiver( uint32_t port ) : mPort(port)
-{    
+{
     try
     {
         mOscListener.setup( mPort );
@@ -50,6 +50,7 @@ void ciXtractReceiver::receiveData()
     
     FeatureDataRef  feature;
     string          name;
+    float           val;
     
     while( mRunReceiveData )
     {
@@ -73,7 +74,15 @@ void ciXtractReceiver::receiveData()
             
             for (int i = 0; i < message.getNumArgs(); i++)
             {
-                feature->data.get()[i] = message.getArgAsFloat(i);
+                // clamp min-max range
+                val = feature->gain * ( message.getArgAsFloat(i) - feature->min ) / ( feature->max - feature->min );
+                val = math<float>::clamp( val, 0.0f, 1.0f );
+            
+                // Damping
+                if ( feature->damping > 0.0f && val < feature->data.get()[i] )
+                    val = feature->data.get()[i] * feature->damping;
+
+                feature->data.get()[i] = val;
             }
         }
         
@@ -88,7 +97,7 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
         if ( mFeatures[k]->name == name )
             return mFeatures[k];
     
-    FeatureDataRef feature = FeatureDataRef( new FeatureData( { name, std::shared_ptr<float>(), 0 } ) );
+    FeatureDataRef feature = FeatureDataRef( new FeatureData( { name, std::shared_ptr<float>(), 0, 1.0f, 0.0f, 1.0f, 0.0f } ) );
     mFeatures.push_back( feature );
     
     return feature;

@@ -24,15 +24,19 @@ using namespace std;
 
 class ciXtractReceiver;
 typedef std::shared_ptr<ciXtractReceiver>   ciXtractReceiverRef;
-
-class ciXtractFeature;
-typedef std::shared_ptr<ciXtractFeature>   ciXtractFeatureRef;
+//
+//class ciXtractFeature;
+//typedef std::shared_ptr<ciXtractFeature>   ciXtractFeatureRef;
 
 
 struct FeatureData {
     std::string             name;
     std::shared_ptr<float>  data;
     int                     size;
+    float                   gain;
+    float                   min;
+    float                   max;
+    float                   damping;
 };
 
 typedef std::shared_ptr<FeatureData>    FeatureDataRef;
@@ -47,6 +51,8 @@ public:
     ~ciXtractReceiver();
     
     FeatureDataRef getFeatureData( std::string name );
+    
+    std::vector<FeatureDataRef> getFeatures() { return mFeatures; }
     
 
 private:
