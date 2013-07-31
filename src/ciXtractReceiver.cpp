@@ -75,7 +75,7 @@ void ciXtractReceiver::receiveData()
             for (int i = 0; i < message.getNumArgs(); i++)
             {
                 // clamp min-max range
-                val = feature->gain * ( message.getArgAsFloat(i) - feature->min ) / ( feature->max - feature->min );
+                val = feature->offset + feature->gain * ( message.getArgAsFloat(i) - feature->min ) / ( feature->max - feature->min );
                 val = math<float>::clamp( val, 0.0f, 1.0f );
             
                 // Damping
@@ -97,9 +97,47 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
         if ( mFeatures[k]->name == name )
             return mFeatures[k];
     
-    FeatureDataRef feature = FeatureDataRef( new FeatureData( { name, std::shared_ptr<float>(), 0, 1.0f, 0.0f, 1.0f, 0.0f } ) );
+    FeatureDataRef feature = FeatureDataRef( new FeatureData( { name, std::shared_ptr<float>(), 0, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f } ) );
     mFeatures.push_back( feature );
     
     return feature;
+}
+
+
+XmlTree ciXtractReceiver::getSettingsXml()
+{
+    XmlTree doc("XtractReceiver", "" );
+    
+    for( auto k=0; k < mFeatures.size(); k++ )
+    {
+        XmlTree node( "feature", "" );
+        node.setAttribute( "enum",      mFeatures[k]->name );
+        node.setAttribute( "value",     mFeatures[k]->gain );
+        node.setAttribute( "min",       mFeatures[k]->min );
+        node.setAttribute( "max",       mFeatures[k]->max );
+        node.setAttribute( "damping",   mFeatures[k]->damping );
+        doc.push_back( node );
+    }
+    
+    return doc;
+}
+
+void ciXtractReceiver::loadSettingsXml( XmlTree doc )
+{
+    string          enumStr;
+    FeatureDataRef  fd;
+    
+    for( XmlTree::Iter nodeIt = doc.find("feature"); nodeIt != doc.end(); ++nodeIt )
+    {
+        enumStr     = nodeIt->getAttributeValue<string>("enum");
+
+        fd          = getFeatureData( enumStr );
+        
+        fd->gain    = nodeIt->getAttributeValue<float>("gain");
+        fd->offset  = nodeIt->getAttributeValue<float>("offset");
+        fd->min     = nodeIt->getAttributeValue<float>("min");
+        fd->max     = nodeIt->getAttributeValue<float>("max");
+        fd->damping = nodeIt->getAttributeValue<float>("damping");
+    }
 }
 

@@ -15,6 +15,7 @@
 #pragma once
 
 #include "cinder/Thread.h"
+#include "cinder/Xml.h"
 #include "OscListener.h"
 
 using namespace ci;
@@ -34,6 +35,7 @@ struct FeatureData {
     std::shared_ptr<float>  data;
     int                     size;
     float                   gain;
+    float                   offset;
     float                   min;
     float                   max;
     float                   damping;
@@ -53,8 +55,12 @@ public:
     FeatureDataRef getFeatureData( std::string name );
     
     std::vector<FeatureDataRef> getFeatures() { return mFeatures; }
-    
 
+    ci::XmlTree getSettingsXml();
+
+    void        loadSettingsXml( ci::XmlTree doc );
+    
+    
 private:
     
     ciXtractReceiver( uint32_t port );
