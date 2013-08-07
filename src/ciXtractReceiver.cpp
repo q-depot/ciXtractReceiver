@@ -48,10 +48,11 @@ void ciXtractReceiver::receiveData()
 {
     mRunReceiveData = true;
     
-    FeatureDataRef  feature;
-    string          name;
-    float           val;
-    
+    FeatureDataRef          feature;
+    string                  name;
+    float                   val;
+    std::shared_ptr<float>  data;
+
     while( mRunReceiveData )
     {
 
@@ -59,30 +60,28 @@ void ciXtractReceiver::receiveData()
         {
             osc::Message message;
             mOscListener.getNextMessage( &message );
-        
+            
             name = message.getAddress();
             boost::replace_all( name, "/", "" );
             
             feature = getFeatureData( name );
-
-            if ( feature->size != message.getNumArgs() )
-            {
-                feature->size = message.getNumArgs();
-                feature->data = std::shared_ptr<float>( new float[feature->size] );
-            }
             
+            if ( feature->getSize() != message.getNumArgs() )
+                feature->setSize( message.getNumArgs() );
+            
+            data = feature->getData();
             
             for (int i = 0; i < message.getNumArgs(); i++)
             {
                 // clamp min-max range
-                val = feature->offset + feature->gain * ( message.getArgAsFloat(i) - feature->min ) / ( feature->max - feature->min );
+                val = feature->getOffset() + feature->getGain() * ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
                 val = math<float>::clamp( val, 0.0f, 1.0f );
             
                 // Damping
-                if ( feature->damping > 0.0f && val < feature->data.get()[i] )
-                    val = feature->data.get()[i] * feature->damping;
+                if ( feature->getDamping() > 0.0f && val < data.get()[i] )
+                    val = data.get()[i] * feature->getDamping();
 
-                feature->data.get()[i] = val;
+                data.get()[i] = val;
             }
         }
         
@@ -94,10 +93,11 @@ void ciXtractReceiver::receiveData()
 FeatureDataRef ciXtractReceiver::getFeatureData( string name )
 {
     for( auto k=0; k < mFeatures.size(); k++ )
-        if ( mFeatures[k]->name == name )
+        if ( mFeatures[k]->getName() == name )
             return mFeatures[k];
     
-    FeatureDataRef feature = FeatureDataRef( new FeatureData( { name, std::shared_ptr<float>(), 0, 1.0f, 0.0f, 0.0f, 1.0f, 0.0f } ) );
+    // If the feature doesn't exists, create one with size 0
+    FeatureDataRef feature = FeatureData::create( name, 0 );
     mFeatures.push_back( feature );
     
     return feature;
@@ -111,16 +111,18 @@ XmlTree ciXtractReceiver::getSettingsXml()
     for( auto k=0; k < mFeatures.size(); k++ )
     {
         XmlTree node( "feature", "" );
-        node.setAttribute( "enum",      mFeatures[k]->name );
-        node.setAttribute( "value",     mFeatures[k]->gain );
-        node.setAttribute( "min",       mFeatures[k]->min );
-        node.setAttribute( "max",       mFeatures[k]->max );
-        node.setAttribute( "damping",   mFeatures[k]->damping );
+        node.setAttribute( "enum",      mFeatures[k]->getName() );
+        node.setAttribute( "gain",      mFeatures[k]->getGain() );
+        node.setAttribute( "offset",    mFeatures[k]->getOffset() );
+        node.setAttribute( "min",       mFeatures[k]->getMin() );
+        node.setAttribute( "max",       mFeatures[k]->getMax() );
+        node.setAttribute( "damping",   mFeatures[k]->getDamping() );
         doc.push_back( node );
     }
     
     return doc;
 }
+
 
 void ciXtractReceiver::loadSettingsXml( XmlTree doc )
 {
@@ -130,14 +132,13 @@ void ciXtractReceiver::loadSettingsXml( XmlTree doc )
     for( XmlTree::Iter nodeIt = doc.find("feature"); nodeIt != doc.end(); ++nodeIt )
     {
         enumStr     = nodeIt->getAttributeValue<string>("enum");
-
         fd          = getFeatureData( enumStr );
         
-        fd->gain    = nodeIt->getAttributeValue<float>("gain");
-        fd->offset  = nodeIt->getAttributeValue<float>("offset");
-        fd->min     = nodeIt->getAttributeValue<float>("min");
-        fd->max     = nodeIt->getAttributeValue<float>("max");
-        fd->damping = nodeIt->getAttributeValue<float>("damping");
+        fd->setGain( nodeIt->getAttributeValue<float>("gain") );
+        fd->setOffset( nodeIt->getAttributeValue<float>("offset") );
+        fd->setMin( nodeIt->getAttributeValue<float>("min") );
+        fd->setMax( nodeIt->getAttributeValue<float>("max") );
+        fd->setDamping( nodeIt->getAttributeValue<float>("damping") );
     }
 }
 
