@@ -18,6 +18,9 @@ using namespace std;
 #include <boost/algorithm/string.hpp> 
 
 
+bool sortFeatures( FeatureDataRef a, FeatureDataRef b ) { return a->getName() < b->getName(); }
+
+
 ciXtractReceiver::ciXtractReceiver( uint32_t port ) : mPort(port)
 {
     try
@@ -100,6 +103,8 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
     FeatureDataRef feature = FeatureData::create( name, 0 );
     mFeatures.push_back( feature );
     
+    std::sort( mFeatures.begin(), mFeatures.end(), sortFeatures );
+
     return feature;
 }
 
