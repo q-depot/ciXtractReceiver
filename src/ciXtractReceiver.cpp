@@ -47,6 +47,22 @@ ciXtractReceiver::~ciXtractReceiver()
 }
 
 
+void ciXtractReceiver::update()
+{
+    for( auto k=0; k < mFeatures.size(); k++ )
+    {
+        for( auto i=0; i < mFeatures[k]->getSize(); i++ )
+        {
+            if ( mFeatures[k]->getDamping() == 0.0f )
+                continue;
+            
+            mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
+        }
+    }
+    // Damping
+}
+
+
 void ciXtractReceiver::receiveData()
 {
     mRunReceiveData = true;
@@ -79,12 +95,9 @@ void ciXtractReceiver::receiveData()
                 // clamp min-max range
                 val = feature->getOffset() + feature->getGain() * ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
                 val = math<float>::clamp( val, 0.0f, 1.0f );
-            
-                // Damping
-                if ( feature->getDamping() > 0.0f && val < data.get()[i] )
-                    val = data.get()[i] * feature->getDamping();
-
-                data.get()[i] = val;
+                
+                if ( feature->getDamping() == 0.0f || val > data.get()[i] )
+                    data.get()[i] = val;
             }
         }
         

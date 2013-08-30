@@ -118,6 +118,7 @@ public:
 
     void        loadSettingsXml( ci::XmlTree doc );
     
+    void        update();
     
 private:
     
