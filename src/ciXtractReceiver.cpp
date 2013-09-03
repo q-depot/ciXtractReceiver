@@ -88,20 +88,25 @@ void ciXtractReceiver::receiveData()
             if ( feature->getSize() != message.getNumArgs() )
                 feature->setSize( message.getNumArgs() );
             
-            data = feature->getData();
+            data    = feature->getData();
             
             for (int i = 0; i < message.getNumArgs(); i++)
             {
                 // clamp min-max range
-                val = feature->getOffset() + feature->getGain() * ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
+                // val = feature->getOffset() + feature->getGain() * ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
+                val = ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
+                
+                if ( feature->isLog() )
+                    val = 10 * log( 1.0f + val );
+
+                val = feature->getOffset() + feature->getGain() * val;
                 val = math<float>::clamp( val, 0.0f, 1.0f );
                 
                 if ( feature->getDamping() == 0.0f || val > data.get()[i] )
                     data.get()[i] = val;
             }
         }
-        
-//        std::this_thread::sleep_for( std::chrono::milliseconds( 16 ) );
+        // std::this_thread::sleep_for( std::chrono::milliseconds( 16 ) );
     }
 }
 
@@ -117,7 +122,7 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
     mFeatures.push_back( feature );
     
     std::sort( mFeatures.begin(), mFeatures.end(), sortFeatures );
-
+    
     return feature;
 }
 
@@ -135,6 +140,7 @@ XmlTree ciXtractReceiver::getSettingsXml()
         node.setAttribute( "min",       mFeatures[k]->getMin() );
         node.setAttribute( "max",       mFeatures[k]->getMax() );
         node.setAttribute( "damping",   mFeatures[k]->getDamping() );
+        node.setAttribute( "isLog",     mFeatures[k]->isLog() );
         doc.push_back( node );
     }
     
@@ -157,6 +163,8 @@ void ciXtractReceiver::loadSettingsXml( XmlTree doc )
         fd->setMin( nodeIt->getAttributeValue<float>("min") );
         fd->setMax( nodeIt->getAttributeValue<float>("max") );
         fd->setDamping( nodeIt->getAttributeValue<float>("damping") );
+        fd->setLog( nodeIt->getAttributeValue<bool>("isLog") );
     }
 }
+
 

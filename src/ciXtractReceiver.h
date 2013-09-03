@@ -69,8 +69,22 @@ public:
             return 0.0f;
         
         binN = binN % mDataSize;
-        return mData.get()[binN];
+
+//        if ( mIsLog )
+//        {
+////            float val   = 100 * log10( 1.0f + mData.get()[binN] );
+////            val         = math<float>::clamp( val, 0.0f, 1.0f );
+//			float val   = 10 * log( mData.get()[binN] );
+//            val         = math<float>::clamp( val, 0.0f, 1.0f );
+//            return val;
+//        }
+//        else
+            return mData.get()[binN];
     }
+    
+    void setLog( bool isLog ) { mIsLog = isLog; }
+    
+    bool isLog() { return mIsLog; }
     
     
 private:
@@ -86,6 +100,7 @@ private:
         mMin        = 0.0f;
         mMax        = 1.0f;
         mDamping    = 0.0f;
+        mIsLog      = false;
     }
     
     
@@ -99,6 +114,7 @@ private:
     float                   mMin;
     float                   mMax;
     float                   mDamping;
+    bool                    mIsLog;
 };
 
 
@@ -112,8 +128,10 @@ public:
     
     FeatureDataRef getFeatureData( std::string name );
     
+    FeatureDataRef getFeatureDataLog( std::string name );
+    
     std::vector<FeatureDataRef> getFeatures() { return mFeatures; }
-
+    
     ci::XmlTree getSettingsXml();
 
     void        loadSettingsXml( ci::XmlTree doc );
