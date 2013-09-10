@@ -47,6 +47,9 @@ public:
     {
         mDataSize   = n;
         mData       = std::shared_ptr<float>( new float[n] );
+
+        for( auto k=0; k < n; k++ )
+            mData.get()[k] = 0.0f;
     }
     
     std::string getName() { return mName; }

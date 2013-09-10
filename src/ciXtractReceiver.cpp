@@ -59,7 +59,6 @@ void ciXtractReceiver::update()
             mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
         }
     }
-    // Damping
 }
 
 
