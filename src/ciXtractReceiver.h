@@ -125,7 +125,7 @@ class ciXtractReceiver {
     
 public:
     
-    static ciXtractReceiverRef create( uint32_t port = 8000 ) { return ciXtractReceiverRef( new ciXtractReceiver( port ) ); }
+    static ciXtractReceiverRef create( uint32_t osc_in_port = 8000 ) { return ciXtractReceiverRef( new ciXtractReceiver( osc_in_port ) ); }
     
     ~ciXtractReceiver();
     
@@ -141,9 +141,10 @@ public:
     
     void        update();
     
+    int         getOscInPort() { return mOscInPort; }
 private:
     
-    ciXtractReceiver( uint32_t port );
+    ciXtractReceiver( uint32_t osc_in_port );
     
     void receiveData();
     
@@ -153,7 +154,7 @@ private:
     std::vector<FeatureDataRef>     mFeatures;
     
 	osc::Listener                   mOscListener;
-    uint32_t                        mPort;
+    uint32_t                        mOscInPort;
     std::thread                     mReceiveDataThread;
     bool                            mRunReceiveData;
     

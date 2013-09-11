@@ -21,11 +21,11 @@ using namespace std;
 bool sortFeatures( FeatureDataRef a, FeatureDataRef b ) { return a->getName() < b->getName(); }
 
 
-ciXtractReceiver::ciXtractReceiver( uint32_t port ) : mPort(port)
+ciXtractReceiver::ciXtractReceiver( uint32_t osc_in_port ) : mOscInPort(osc_in_port)
 {
     try
     {
-        mOscListener.setup( mPort );
+        mOscListener.setup( mOscInPort );
         
         mReceiveDataThread = std::thread( &ciXtractReceiver::receiveData, this );
     }
@@ -129,7 +129,7 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
 XmlTree ciXtractReceiver::getSettingsXml()
 {
     XmlTree doc("XtractReceiver", "" );
-    doc.setAttribute( "oscInPort", mPort );
+    doc.setAttribute( "oscInPort", mOscInPort );
     
     for( auto k=0; k < mFeatures.size(); k++ )
     {
@@ -155,10 +155,10 @@ void ciXtractReceiver::loadSettingsXml( XmlTree doc )
 
     int port = doc.getAttributeValue<int>( "oscInPort" );
  
-    if ( mPort != port )
+    if ( mOscInPort != port )
     {
-        mPort = port;
-        mOscListener.setup( mPort );
+        mOscInPort = port;
+        mOscListener.setup( mOscInPort );
     }
     
     for( XmlTree::Iter nodeIt = doc.find("feature"); nodeIt != doc.end(); ++nodeIt )
