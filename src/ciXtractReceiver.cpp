@@ -129,6 +129,7 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
 XmlTree ciXtractReceiver::getSettingsXml()
 {
     XmlTree doc("XtractReceiver", "" );
+    doc.setAttribute( "oscInPort", mPort );
     
     for( auto k=0; k < mFeatures.size(); k++ )
     {
@@ -151,6 +152,14 @@ void ciXtractReceiver::loadSettingsXml( XmlTree doc )
 {
     string          enumStr;
     FeatureDataRef  fd;
+
+    int port = doc.getAttributeValue<int>( "oscInPort" );
+ 
+    if ( mPort != port )
+    {
+        mPort = port;
+        mOscListener.setup( mPort );
+    }
     
     for( XmlTree::Iter nodeIt = doc.find("feature"); nodeIt != doc.end(); ++nodeIt )
     {
