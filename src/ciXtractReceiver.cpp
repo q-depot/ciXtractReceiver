@@ -50,15 +50,9 @@ ciXtractReceiver::~ciXtractReceiver()
 void ciXtractReceiver::update()
 {
     for( auto k=0; k < mFeatures.size(); k++ )
-    {
         for( auto i=0; i < mFeatures[k]->getSize(); i++ )
-        {
-            if ( mFeatures[k]->getDamping() == 0.0f )
-                continue;
-            
-            mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
-        }
-    }
+            if ( mFeatures[k]->getDamping() > 0.0f )
+                mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
 }
 
 
@@ -70,7 +64,8 @@ void ciXtractReceiver::receiveData()
     string                  name;
     float                   val;
     std::shared_ptr<float>  data;
-
+    int                     argsN;
+    
     while( mRunReceiveData )
     {
 
@@ -88,15 +83,16 @@ void ciXtractReceiver::receiveData()
                 feature->setSize( message.getNumArgs() );
             
             data    = feature->getData();
+            argsN   = message.getNumArgs();
             
-            for (int i = 0; i < message.getNumArgs(); i++)
+            for (int i = 0; i < argsN; i++)
             {
                 // clamp min-max range
-                // val = feature->getOffset() + feature->getGain() * ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
                 val = ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
                 
                 if ( feature->isLog() )
-                    val = 10 * log( 1.0f + val );
+                    val = min( (float)(i + 25) / (float)argsN, 1.0f ) * 100 * log10( 1.0f + val );
+//                    val = 10 * log( 1.0f + val );
 
                 val = feature->getOffset() + feature->getGain() * val;
                 val = math<float>::clamp( val, 0.0f, 1.0f );
@@ -128,7 +124,7 @@ FeatureDataRef ciXtractReceiver::getFeatureData( string name )
 
 XmlTree ciXtractReceiver::getSettingsXml()
 {
-    XmlTree doc("XtractReceiver", "" );
+    XmlTree doc("XtractSettings", "" );
     doc.setAttribute( "oscInPort", mOscInPort );
     
     for( auto k=0; k < mFeatures.size(); k++ )
@@ -174,5 +170,4 @@ void ciXtractReceiver::loadSettingsXml( XmlTree doc )
         fd->setLog( nodeIt->getAttributeValue<bool>("isLog") );
     }
 }
-
 
