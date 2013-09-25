@@ -74,7 +74,7 @@ void ciXtractReceiver::update()
             
             if ( mFeatures[k]->getDamping() > 0.0f )
             {
-                if (  rawData.get()[i] > data.get()[i] )
+                if (  val > data.get()[i] )
                     data.get()[i] = val;
                 else
                     data.get()[i] *= mFeatures[k]->getDamping();
