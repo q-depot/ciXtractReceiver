@@ -49,10 +49,45 @@ ciXtractReceiver::~ciXtractReceiver()
 
 void ciXtractReceiver::update()
 {
+    std::shared_ptr<float>  data, rawData;
+    float                   val;
+    size_t                  valuesN;
+    
     for( auto k=0; k < mFeatures.size(); k++ )
-        for( auto i=0; i < mFeatures[k]->getSize(); i++ )
+    {
+        valuesN = mFeatures[k]->getSize();
+     
+        for( auto i=0; i < valuesN; i++ )
+        {
+            data    = mFeatures[k]->getData();
+            rawData = mFeatures[k]->getRawData();
+
+            // clamp min-max range
+            val = ( rawData.get()[i] - mFeatures[k]->getMin() ) / ( mFeatures[k]->getMax() - mFeatures[k]->getMin() );
+            
+            if ( mFeatures[k]->isLog() )
+                val = min( (float)(i + 25) / (float)valuesN, 1.0f ) * 100 * log10( 1.0f + val );
+            
+            val = mFeatures[k]->getOffset() + mFeatures[k]->getGain() * val;
+            
+            val = math<float>::clamp( val, 0.0f, 1.0f );
+            
             if ( mFeatures[k]->getDamping() > 0.0f )
-                mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
+            {
+                if (  rawData.get()[i] > data.get()[i] )
+                    data.get()[i] = val;
+                else
+                    data.get()[i] *= mFeatures[k]->getDamping();
+            }
+            else
+                data.get()[i] = val;
+        }
+    }
+          
+//    for( auto k=0; k < mFeatures.size(); k++ )
+//        for( auto i=0; i < mFeatures[k]->getSize(); i++ )
+//            if ( mFeatures[k]->getDamping() > 0.0f )
+//                mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
 }
 
 
@@ -62,8 +97,7 @@ void ciXtractReceiver::receiveData()
     
     FeatureDataRef          feature;
     string                  name;
-    float                   val;
-    std::shared_ptr<float>  data;
+    std::shared_ptr<float>  rawData;
     int                     argsN;
     
     while( mRunReceiveData )
@@ -82,23 +116,25 @@ void ciXtractReceiver::receiveData()
             if ( feature->getSize() != message.getNumArgs() )
                 feature->setSize( message.getNumArgs() );
             
-            data    = feature->getData();
+            rawData = feature->getRawData();
             argsN   = message.getNumArgs();
             
             for (int i = 0; i < argsN; i++)
             {
+                rawData.get()[i] = message.getArgAsFloat(i);
+                
+                /*
                 // clamp min-max range
                 val = ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
                 
                 if ( feature->isLog() )
                     val = min( (float)(i + 25) / (float)argsN, 1.0f ) * 100 * log10( 1.0f + val );
-//                    val = 10 * log( 1.0f + val );
 
                 val = feature->getOffset() + feature->getGain() * val;
                 val = math<float>::clamp( val, 0.0f, 1.0f );
                 
-                if ( feature->getDamping() == 0.0f || val > data.get()[i] )
-                    data.get()[i] = val;
+                rawData.get()[i] = val;
+                 */
             }
         }
         // std::this_thread::sleep_for( std::chrono::milliseconds( 16 ) );

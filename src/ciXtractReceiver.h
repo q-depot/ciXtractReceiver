@@ -41,15 +41,21 @@ public:
     
     std::shared_ptr<float>  getData() { return mData; }
     
+    std::shared_ptr<float>  getRawData() { return mRawData; }
+    
     size_t getSize() { return mDataSize; }
     
     void setSize( size_t n )
     {
         mDataSize   = n;
         mData       = std::shared_ptr<float>( new float[n] );
-
+        mRawData    = std::shared_ptr<float>( new float[n] );
+        
         for( auto k=0; k < n; k++ )
+        {
             mData.get()[k] = 0.0f;
+            mRawData.get()[k] = 0.0f;
+        }
     }
     
     std::string getName() { return mName; }
@@ -72,17 +78,8 @@ public:
             return 0.0f;
         
         binN = binN % mDataSize;
-
-//        if ( mIsLog )
-//        {
-////            float val   = 100 * log10( 1.0f + mData.get()[binN] );
-////            val         = math<float>::clamp( val, 0.0f, 1.0f );
-//			float val   = 10 * log( mData.get()[binN] );
-//            val         = math<float>::clamp( val, 0.0f, 1.0f );
-//            return val;
-//        }
-//        else
-            return mData.get()[binN];
+        
+        return mData.get()[binN];
     }
     
     void setLog( bool isLog ) { mIsLog = isLog; }
@@ -96,6 +93,7 @@ private:
     {
         mName       = name;
         mData       = std::shared_ptr<float>( new float[size] );
+        mRawData    = std::shared_ptr<float>( new float[size] );
         mDataSize   = size;
         
         mGain       = 1.0f;
@@ -111,6 +109,7 @@ private:
     
     std::string             mName;
     std::shared_ptr<float>  mData;
+    std::shared_ptr<float>  mRawData;
     size_t                  mDataSize;
     float                   mGain;
     float                   mOffset;
