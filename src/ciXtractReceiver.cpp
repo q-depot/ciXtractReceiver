@@ -8,14 +8,13 @@
  *
  */
 
+#include "cinder\app\App.h"
+#include <boost/algorithm/string.hpp> 
+#include "ciXtractReceiver.h"
 
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-
-
-#include "ciXtractReceiver.h"
-#include <boost/algorithm/string.hpp> 
 
 
 bool sortFeatures( FeatureDataRef a, FeatureDataRef b ) { return a->getName() < b->getName(); }
@@ -53,11 +52,11 @@ void ciXtractReceiver::update()
     float                   val;
     size_t                  valuesN;
     
-    for( auto k=0; k < mFeatures.size(); k++ )
+    for( size_t k=0; k < mFeatures.size(); k++ )
     {
         valuesN = mFeatures[k]->getSize();
      
-        for( auto i=0; i < valuesN; i++ )
+        for( size_t i=0; i < valuesN; i++ )
         {
             data    = mFeatures[k]->getData();
             rawData = mFeatures[k]->getRawData();
@@ -144,7 +143,7 @@ void ciXtractReceiver::receiveData()
 
 FeatureDataRef ciXtractReceiver::getFeatureData( string name )
 {
-    for( auto k=0; k < mFeatures.size(); k++ )
+    for( size_t k=0; k < mFeatures.size(); k++ )
         if ( mFeatures[k]->getName() == name )
             return mFeatures[k];
     
@@ -163,7 +162,7 @@ XmlTree ciXtractReceiver::getSettingsXml()
     XmlTree doc("XtractSettings", "" );
     doc.setAttribute( "oscInPort", mOscInPort );
     
-    for( auto k=0; k < mFeatures.size(); k++ )
+    for( size_t k=0; k < mFeatures.size(); k++ )
     {
         XmlTree node( "feature", "" );
         node.setAttribute( "enum",      mFeatures[k]->getName() );

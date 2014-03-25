@@ -18,10 +18,6 @@
 #include "cinder/Xml.h"
 #include "OscListener.h"
 
-using namespace ci;
-using namespace ci::app;
-using namespace std;
-
 
 class ciXtractReceiver;
 typedef std::shared_ptr<ciXtractReceiver>   ciXtractReceiverRef;
@@ -51,7 +47,7 @@ public:
         mData       = std::shared_ptr<float>( new float[n] );
         mRawData    = std::shared_ptr<float>( new float[n] );
         
-        for( auto k=0; k < n; k++ )
+        for( size_t k=0; k < n; k++ )
         {
             mData.get()[k] = 0.0f;
             mRawData.get()[k] = 0.0f;
@@ -152,7 +148,7 @@ private:
     
     std::vector<FeatureDataRef>     mFeatures;
     
-	osc::Listener                   mOscListener;
+	ci::osc::Listener               mOscListener;
     uint32_t                        mOscInPort;
     std::thread                     mReceiveDataThread;
     bool                            mRunReceiveData;

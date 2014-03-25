@@ -8,6 +8,8 @@
 		summary="LibXtract OSC Receiver"
 		git="git@bitbucket.org:q_bit/cixtractreceiver.git"
 		>
+		<requires>org.libcinder.osc</requires>
+
 		<supports os="msw" />
 		<supports os="macosx" />
 	
