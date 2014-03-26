@@ -54,12 +54,22 @@ void ciXtractReceiver::update()
     
     for( size_t k=0; k < mFeatures.size(); k++ )
     {
-        valuesN = mFeatures[k]->getSize();
-     
+		mFeatures[k]->mMutex.lock();
+		
+		if ( mFeatures[k]->getSize() == 0 )
+		{
+			mFeatures[k]->mMutex.unlock();
+			continue;
+		}
+
+        valuesN = mFeatures[k]->getSize(); 
+        data    = mFeatures[k]->getData();
+        rawData = mFeatures[k]->getRawData();
+
         for( size_t i=0; i < valuesN; i++ )
         {
-            data    = mFeatures[k]->getData();
-            rawData = mFeatures[k]->getRawData();
+			if ( !rawData )
+				continue;
 
             // clamp min-max range
             val = ( rawData.get()[i] - mFeatures[k]->getMin() ) / ( mFeatures[k]->getMax() - mFeatures[k]->getMin() );
@@ -81,12 +91,9 @@ void ciXtractReceiver::update()
             else
                 data.get()[i] = val;
         }
+
+		mFeatures[k]->mMutex.unlock();
     }
-          
-//    for( auto k=0; k < mFeatures.size(); k++ )
-//        for( auto i=0; i < mFeatures[k]->getSize(); i++ )
-//            if ( mFeatures[k]->getDamping() > 0.0f )
-//                mFeatures[k]->getData().get()[i] *= mFeatures[k]->getDamping();
 }
 
 
@@ -101,7 +108,6 @@ void ciXtractReceiver::receiveData()
     
     while( mRunReceiveData )
     {
-
         while( mOscListener.hasWaitingMessages() )
         {
             osc::Message message;
@@ -111,7 +117,9 @@ void ciXtractReceiver::receiveData()
             boost::replace_all( name, "/", "" );
             
             feature = getFeatureData( name );
-            
+			
+			feature->mMutex.lock();
+
             if ( feature->getSize() != message.getNumArgs() )
                 feature->setSize( message.getNumArgs() );
             
@@ -119,23 +127,10 @@ void ciXtractReceiver::receiveData()
             argsN   = message.getNumArgs();
             
             for (int i = 0; i < argsN; i++)
-            {
                 rawData.get()[i] = message.getArgAsFloat(i);
-                
-                /*
-                // clamp min-max range
-                val = ( message.getArgAsFloat(i) - feature->getMin() ) / ( feature->getMax() - feature->getMin() );
-                
-                if ( feature->isLog() )
-                    val = min( (float)(i + 25) / (float)argsN, 1.0f ) * 100 * log10( 1.0f + val );
 
-                val = feature->getOffset() + feature->getGain() * val;
-                val = math<float>::clamp( val, 0.0f, 1.0f );
-                
-                rawData.get()[i] = val;
-                 */
-            }
-        }
+			feature->mMutex.unlock();
+		}
         // std::this_thread::sleep_for( std::chrono::milliseconds( 16 ) );
     }
 }
@@ -206,3 +201,49 @@ void ciXtractReceiver::loadSettingsXml( XmlTree doc )
     }
 }
 
+
+
+void ciXtractReceiver::drawData( FeatureDataRef feature, Rectf rect, ColorA plotCol, ColorA bgCol )
+{
+	if ( !feature )
+		return;
+
+    glPushMatrix();
+    
+    gl::drawString( feature->getName(), rect.getUpperLeft(), Color::black() );
+    
+    rect.y1 += 10;
+    
+    gl::color( bgCol );
+    gl::drawSolidRect( rect );
+    
+    gl::translate( rect.getUpperLeft() );
+    
+    glBegin( GL_QUADS );
+    
+    std::shared_ptr<float>	data  = feature->getData();
+    int                     dataN = feature->getSize();
+    float                   min   = feature->getMin();
+    float                   max   = feature->getMax();
+    float                   step  = rect.getWidth() / dataN;
+    float                   h     = rect.getHeight();
+    float                   val, barY;
+    
+    gl::color( plotCol );
+    
+    for( int i = 0; i < dataN; i++ )
+    {
+        val     = ( data.get()[i] - min ) / ( max - min );
+        val     = math<float>::clamp( val, 0.0f, 1.0f );
+        barY    = h * val;
+        
+        glVertex2f( i * step,           h );
+        glVertex2f( ( i + 1 ) * step,   h );
+        glVertex2f( ( i + 1 ) * step,   h-barY );
+        glVertex2f( i * step,           h-barY );
+    }
+
+    glEnd();
+
+    gl::popMatrices();
+}

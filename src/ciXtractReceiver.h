@@ -82,7 +82,10 @@ public:
     
     bool isLog() { return mIsLog; }
     
-    
+public:
+
+	std::mutex	mMutex;
+
 private:
     
     FeatureData( std::string name, size_t size )
@@ -99,8 +102,8 @@ private:
         mDamping    = 0.0f;
         mIsLog      = false;
     }
-    
-    
+   
+
 private:
     
     std::string             mName;
@@ -137,6 +140,11 @@ public:
     void        update();
     
     int         getOscInPort() { return mOscInPort; }
+
+public:
+
+	static void drawData( FeatureDataRef feature, ci::Rectf rect, ci::ColorA plotCol = ci::ColorA( 0.0f, 1.0f, 1.0f, 0.85f ), ci::ColorA bgCol = ci::ColorA( 1.0f, 1.0f, 1.0f, 0.1f ) );
+
 private:
     
     ciXtractReceiver( uint32_t osc_in_port );
