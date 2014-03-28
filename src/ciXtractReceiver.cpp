@@ -8,7 +8,7 @@
  *
  */
 
-#include "cinder\app\App.h"
+#include "cinder/app/App.h"
 #include <boost/algorithm/string.hpp> 
 #include "ciXtractReceiver.h"
 
@@ -210,7 +210,7 @@ void ciXtractReceiver::drawData( FeatureDataRef feature, Rectf rect, ColorA plot
 
     glPushMatrix();
     
-    gl::drawString( feature->getName(), rect.getUpperLeft(), Color::black() );
+    gl::drawString( feature->getName(), rect.getUpperLeft(), plotCol );
     
     rect.y1 += 10;
     
@@ -218,8 +218,6 @@ void ciXtractReceiver::drawData( FeatureDataRef feature, Rectf rect, ColorA plot
     gl::drawSolidRect( rect );
     
     gl::translate( rect.getUpperLeft() );
-    
-    glBegin( GL_QUADS );
     
     std::shared_ptr<float>	data  = feature->getData();
     int                     dataN = feature->getSize();
@@ -230,6 +228,8 @@ void ciXtractReceiver::drawData( FeatureDataRef feature, Rectf rect, ColorA plot
     float                   val, barY;
     
     gl::color( plotCol );
+    
+    glBegin( GL_QUADS );
     
     for( int i = 0; i < dataN; i++ )
     {
@@ -242,7 +242,7 @@ void ciXtractReceiver::drawData( FeatureDataRef feature, Rectf rect, ColorA plot
         glVertex2f( ( i + 1 ) * step,   h-barY );
         glVertex2f( i * step,           h-barY );
     }
-
+    
     glEnd();
 
     gl::popMatrices();
